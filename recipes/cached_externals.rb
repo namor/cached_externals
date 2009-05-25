@@ -31,7 +31,7 @@ namespace :externals do
     Set up all defined external modules. This will check to see if any of the
     modules need to be checked out (be they new or just updated), and will then
     create symlinks to them. If running in 'local' mode (see the :local task)
-    then these will be created in a "../shared/externals" directory relative
+    then these will be created in a "../externals/" directory relative
     to the project root. Otherwise, these will be created on the remote
     machines under [shared_path]/externals.
   DESC
@@ -39,30 +39,51 @@ namespace :externals do
     require 'capistrano/recipes/deploy/scm'
 
     external_modules.each do |path, options|
-      puts "configuring #{path}"
+      puts "configuring & linking #{path}"
       scm = Capistrano::Deploy::SCM.new(options[:type], options)
-      revision = scm.query_revision(options[:revision]) { |cmd| `#{cmd}` }
 
       if exists?(:stage) && stage == :local
         FileUtils.rm_rf(path)
-        shared = File.expand_path(File.join("../shared/externals", path))
-        FileUtils.mkdir_p(shared)
-        destination = File.join(shared, revision)
+        destination = options[:working_dir] || File.expand_path(File.join("../externals/", path.split(File::SEPARATOR).last))
         if !File.exists?(destination)
-          unless system(scm.checkout(revision, destination))
+          unless system(scm.checkout("HEAD", destination))
             FileUtils.rm_rf(destination) if File.exists?(destination)
-            raise "Error checking out #{revision} to #{destination}"
+            raise "Error cloning #{repository} to #{destination}"
           end
         end
         FileUtils.ln_s(destination, path)
       else
+        revision = scm.query_revision(options[:revision]) { |cmd| `#{cmd}` }
         shared = File.join(shared_path, "externals", path)
         destination = File.join(shared, revision)
         run "rm -rf #{latest_release}/#{path} && mkdir -p #{shared} && if [ ! -d #{destination} ]; then (#{scm.checkout(revision, destination)}) || rm -rf #{destination}; fi && ln -nsf #{destination} #{latest_release}/#{path}"
       end
     end
   end
+  
+  desc <<-DESC
+    Update defined external modules (same as setup). If running in 'local' mode (see the :local task), 
+    this will synchronize local modules to the HEAD of SCM configured in externals.yml
+  DESC
+  task :update, :except => { :no_release => true } do
+    if exists?(:stage) && stage == :local
+      external_modules.each do |path, options|
+        puts "Updating #{path}"
+        scm = Capistrano::Deploy::SCM.new(options[:type], options)
+        
+        destination = options[:working_dir] || File.expand_path(File.join("../externals/", path.split(File::SEPARATOR).last))
+        raise "#{destination} is missing. Please run 'cap local externals:setup'" if !File.exists?(destination)
+        unless system(scm.sync("HEAD", destination))
+          raise "Error synchronizing #{destination} with SCM"
+        end
+      end
+    else
+      setup
+    end
+  end
+  
 end
+
 
 # Need to do this before finalize_update, instead of after update_code,
 # because finalize_update tries to do a touch of all assets, and some
