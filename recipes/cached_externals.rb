@@ -46,7 +46,7 @@ namespace :externals do
         FileUtils.rm_rf(path)
         destination = options[:working_dir] || File.expand_path(File.join("../externals/", path.split(File::SEPARATOR).last))
         if !File.exists?(destination)
-          unless system(scm.checkout("HEAD", destination))
+          unless system(scm.checkout(scm.head, destination))
             FileUtils.rm_rf(destination) if File.exists?(destination)
             raise "Error cloning #{repository} to #{destination}"
           end
