@@ -1,4 +1,29 @@
-= Cached Externals
+= Cached Externals (Desert Evil Twin)
+
+Note : This plugin has been modified with a workflow to actively develop Desert plugins together with the master app where you want to modify the plugin from the vendor folder itself and be able to commit changes back its original repository without using Git submodules.
+
+It expands on the concept of the original plugin where symlinks are now created to active git repositories in your local machine. 
+The remote deploy concept maintained where you can choose to cache a specific revision of the plugin for staging/production servers. 
+
+== Usage 
+
+See original documentation
+
+== Evil Twin Changes
+
+* externals.yml
+  working_dir (optional): - Specify your active development directory (defaults to ../externals/#{plugin_name})
+* Added externals:update
+
+Example 
+vendor/plugins/freeform_newsletter:
+  :type: git
+  :repository: git@gitbase.com:flexnode/klue/freeform_newsletter.git
+  :revision: HEAD
+  :working_dir: /Users/john/Workspace/Rails/externals/freeform_newsletter
+
+
+== Original Documentation
 
 This Capistrano extension provides yet another way to manage your application's external dependencies.
 
