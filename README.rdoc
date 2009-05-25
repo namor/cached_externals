@@ -15,13 +15,18 @@ See original documentation
   working_dir (optional): - Specify your active development directory (defaults to ../externals/#{plugin_name})
 * Added externals:update
 
-Example 
-vendor/plugins/freeform_newsletter:
-  :type: git
-  :repository: git@gitbase.com:flexnode/klue/freeform_newsletter.git
-  :revision: HEAD
-  :working_dir: /Users/john/Workspace/Rails/externals/freeform_newsletter
 
+Example 
+
+vendor/plugins/rails:
+  :type: git
+  :repository: git://github.com/rails/rails.git
+  :revision: HEAD
+  :working_dir: /Users/john/Workspace/Rails/externals/rails
+
+
+== Know Bugs
+* Dont know why the checked out branch is deploy instead of master. Help anyone?
 
 == Original Documentation
 
